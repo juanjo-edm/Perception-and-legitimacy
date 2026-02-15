@@ -5,3 +5,4 @@
 data/Embeddings/
 .DS_Store
 *.nb.html
+README.Rmd
