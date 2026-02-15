@@ -1,0 +1,441 @@
+---
+title: "Cuaderno de scraping google news"
+#author: "Juan José Echeverry"
+output: 
+  html_notebook:
+    toc: true          # Activa tabla de contenido
+    toc_depth: 3       # Profundidad de la TOC (por defecto es 3)
+    toc_float: true    # Tabla de contenido flotante
+    #number_sections: true  # Numera secciones
+    fig_width: 7       # Ancho predeterminado de figuras (en pulgadas)
+    fig_height: 5      # Alto predeterminado de figuras (en pulgadas)
+    #theme: united      # Tema visual de Bootstrap (opcional)
+    highlight: tango    # Tema de resaltado de código
+---
+
+# Introducción
+
+**Librerias necesarias**
+
+```{r}
+library(RSelenium)
+library(netstat)
+library(tidyverse)
+library(glue)
+library(lubridate)
+library(stringr)
+library(openxlsx)
+library(RSelenium)
+library(netstat)
+library(tidyverse)
+library(glue)
+library(lubridate)
+library(stringr)
+library(openxlsx)
+library(rvest)
+library(dplyr)
+library(purrr)
+library(httr)
+
+```
+
+# 1) Configuración del scraping
+
+## 1.1) Consultas: vector de búsquedas.
+
+Cada elemento se envía a Google como texto plano en el parámetro `q` de la URL, pero en este caso se añaden los operadores `+` delante de las palabras clave base y se encierran entre comillas aquellas que corresponden a frases completas (por ejemplo, `"ANTONIO NARIÑO"`). Esto obliga a Google a incluir obligatoriamente todas las palabras marcadas en los resultados, aunque no necesariamente en el mismo orden ni de forma consecutiva. A diferencia de las búsquedas sin operadores, donde Google puede omitir términos o reemplazarlos por sinónimos, con el uso de `+` cada palabra y frase marcada se convierte en obligatoria: el motor debe mostrar únicamente páginas que las contengan explícitamente. Por ejemplo, si busco `+seguridad +hurtos +Bogotá +"ANTONIO NARIÑO"`, los resultados incluirán necesariamente esas palabras y la frase exacta de la localidad. En resumen, no es una búsqueda de frase exacta para todo el conjunto, pero sí un **AND estricto**, lo que reduce la tolerancia y la expansión semántica de Google.
+
+Incluir explícitamente las palabras `+seguridad +hurtos +Bogotá` junto con la frase exacta de cada localidad garantiza que los artículos encontrados hagan referencia tanto al tema (delitos de seguridad y hurtos) como al ámbito geográfico (Bogotá y la localidad específica). Esto acota la búsqueda a noticias relevantes sobre hechos de inseguridad en cada zona, reduciendo el ruido de artículos que mencionen la localidad en otros contextos (cultura, política, deporte, etc.). Aunque no elimina por completo la limitación de georreferenciación en los medios, mejora significativamente la precisión inicial de los datos, ya que todos los textos recolectados contienen obligatoriamente las palabras clave centrales y la localidad exacta, facilitando su posterior análisis con técnicas de NLP para extraer variables espaciales y temporales.
+
+El código en R construye un conjunto de cadenas de texto que pueden usarse directamente en búsquedas automatizadas: primero define un vector llamado `localidades` con los nombres de las 20 localidades de Bogotá, luego excluye `SUMAPAZ`porque no suele aparecer en noticias de seguridad urbana, y finalmente crea el objeto `consultas`, que concatena para cada localidad la expresión base `+seguridad +hurtos +Bogotá` junto con la frase exacta de la localidad correspondiente (entre comillas). El resultado es un vector de 19 elementos, cada uno representando una consulta distinta como `+seguridad +hurtos +Bogotá +"KENNEDY"` o `+seguridad +hurtos +Bogotá +"SUBA"`, listo para scraping de noticias en buscadores.
+
+En este caso, el orden de las palabras y las mayúsculas ya no es relevante: Google no diferencia entre “suba”, “Suba” o “SUBA”, y da lo mismo escribir `+seguridad +hurtos +Bogotá +"Suba"` que `+hurtos +seguridad +"Suba" +Bogotá`. Respecto a las tildes, Google suele interpretar correctamente variantes como “Engativá” y “Engativa”, aunque en ciertos casos puede mostrar resultados levemente distintos. Finalmente, si se reemplazan términos clave por sinónimos (`robos`, `atracos` en lugar de `hurtos`), los resultados sí cambian, porque Google los procesa como palabras distintas, incluso si reconoce alguna relación semántica.
+
+```{r}
+# Vector con las localidades que compartiste
+localidades <- c(
+  "ANTONIO NARIÑO",
+  "BARRIOS UNIDOS",
+  "BOSA",
+  "CANDELARIA",
+  "CHAPINERO",
+  "CIUDAD BOLÍVAR",
+  "ENGATIVÁ",
+  "FONTIBÓN",
+  "KENNEDY",
+  "LOS MÁRTIRES",
+  "PUENTE ARANDA",
+  "RAFAEL URIBE URIBE",
+  "SAN CRISTÓBAL",
+  "SANTA FE",
+  "SUBA",
+  "TEUSAQUILLO",
+  "TUNJUELITO",
+  "USAQUÉN",
+  "USME",
+  "SUMAPAZ" # incluyo Sumapaz para luego excluirlo
+)
+
+# Excluir Sumapaz explícitamente
+localidades <- localidades[localidades != "SUMAPAZ"]
+
+# Crear las consultas
+consultas <- paste0("+seguridad +hurtos +Bogotá +", gsub(" ", " +", localidades))
+
+
+consultas
+```
+
+## 1.2) Rango temporal: usa el filtro por rango de fechas de Google
+
+En este caso mi scraping itera por consulta mensual, no diaria, porque yo construyo los rangos de fechas con inicios_mes \<- seq(..., by = "1 month") y fines_mes \<- inicios_mes %m+% months(1) - days(1). Eso significa que divido todo el intervalo entre la fecha_inicio y la fecha_fin en bloques de meses completos, y dentro de cada bloque recorro hasta max_paginas_por_mes páginas usando el parámetro start=0,10,20.... En la práctica, por cada localidad de Bogotá obtengo las noticias mes a mes, con un máximo de 30 páginas (≈300 resultados) por mes; es decir, mi scraping no baja al nivel de días individuales, sino que agrupa todo lo publicado dentro de cada mes.
+
+```{r}
+fecha_inicio <- as.Date("2024-01-01")
+fecha_fin    <- Sys.Date()
+
+```
+
+## 1.3) Indicamos idioma y region
+
+Idioma/región: hl = "es-419" (es-Latinoamérica), gl = "CO" (geolocalización Colombia).
+
+```{r}
+hl <- "es-419"
+gl <- "CO"
+```
+
+## 1.4) Paginación
+
+Google muestra 10 resultados por página en tbm=nws. El script itera páginas vía el parámetro start=0,10,20,....
+
+```{r}
+# Paginación por mes (10 resultados por página en Google News SERP)
+max_paginas_por_mes <- 30  # ajusta según necesites
+```
+
+En las búsquedas de Google News (usando el parámetro tbm=nws), el buscador devuelve por defecto 10 resultados por página, y la forma de navegar entre páginas es modificando el parámetro start en la URL, que toma valores de 0 en la primera página, 10 en la segunda, 20 en la tercera y así sucesivamente; por eso, en un script de scraping se implementa un bucle que cambia ese parámetro para recorrer varias páginas de resultados, y la variable max_paginas_por_mes \<- 30 sirve como límite de iteraciones para no exceder el número de consultas, de manera que el código pueda capturar hasta 30 páginas (es decir, hasta 300 resultados) por cada mes o periodo que se esté analizando.
+
+## 1.5). Pausas aleatorias
+
+para reducir riesgo de bloqueo (“anti-baneo” ligero): 2–4 segundos entre acciones.
+
+```{r}
+# Pausas aleatorias (anti-bloqueo suave)
+espera_min <- 2
+espera_max <- 4
+```
+
+## 1.6) User-Agent
+
+Función que “simula” distintos navegadores (decorativo; más abajo te explico por qué).
+
+```{r}
+get_user_agent <- function() {
+  sample(c(
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0"
+  ), 1)
+}
+
+```
+
+# 2) Construcción de URLs de Google News
+
+## 2.1) Acomodamos formato de fecha
+
+Convierte fechas a MM/DD/YYYY para que Google aplique el filtro por rango exacto.
+
+```{r}
+
+# Helper: fechas MM/DD/YYYY para tbs=cdr
+formatear_mmddyyyy <- function(fecha) format(as.Date(fecha), "%m/%d/%Y")
+
+```
+
+Esa parte me sirve para que Google entienda el rango de fechas que yo quiero aplicar en el filtro de búsqueda. Google, cuando uso el parámetro tbs=cdr:1,cd_min:...,cd_max:..., espera que las fechas estén en el formato mes/día/año (MM/DD/YYYY), no en el formato habitual que maneja R (YYYY-MM-DD). Por eso creo la función formatear_mmddyyyy(), que toma cualquier fecha en R, la convierte con as.Date() y la transforma al formato que Google acepta. De esa forma, al armar la URL con cd_min y cd_max, Google News me devuelve exactamente las noticias dentro de ese rango de fechas, sin errores ni interpretaciones equivocadas.
+
+## 2.2) Funcion que crea la url de busqueda
+
+Usa URLencode para escapar la consulta.
+
+```{r}
+# Builder de URL para Google News SERP (tbm=nws) con rango de fechas y paginación
+build_google_news_url <- function(query, dmin, dmax, start = 0, hl = "es-419", gl = "CO") {
+  q <- utils::URLencode(query, reserved = TRUE)
+  cd_min <- formatear_mmddyyyy(dmin)
+  cd_max <- formatear_mmddyyyy(dmax)
+  glue(
+    "https://www.google.com/search?q={q}",
+    "&tbm=nws&hl={hl}&gl={gl}",
+    "&tbs=cdr:1,cd_min:{cd_min},cd_max:{cd_max}",
+    "&start={start}"
+  )
+}
+```
+
+# 3) Inicio de Selenium
+
+-   Lanza un **servidor de Selenium** + instancia de **Chrome**.
+
+-   `chromever=NULL` + `check=FALSE` evita chequeos en línea, pero **igual necesitas** que el **ChromeDriver** instalado sea **compatible** con tu versión de Chrome.
+
+-   `port = free_port()` evita conflictos de puertos.
+
+```{r}
+
+rD <- rsDriver(
+  browser = "chrome",
+  chromever = NULL,    # ahora NULL detecta la última versión instalada
+  port = free_port(),
+  verbose = FALSE,
+  check = FALSE,
+  phantomver = NULL    # 👈 evita el error de phantomjs
+)
+
+remDr <- rD$client
+```
+
+## 3.1) Aceptar casillas de concetimiento
+
+-   Intenta hacer clic en botones típicos de consentimiento (“Acepto”, “Estoy de acuerdo”, id `L2AGLb`), si aparecen.
+
+-   Esto ayuda a desbloquear la página antes de scrapear.
+
+```{r}
+aceptar_consentimiento <- function() {
+  # Intenta aceptar el consentimiento si aparece
+  try({
+    Sys.sleep(runif(1, espera_min, espera_max))
+    btns <- remDr$findElements("css selector",
+                               "button#L2AGLb, button[aria-label*='Acepto'], button[aria-label*='Estoy de acuerdo']")
+    if (length(btns) > 0) {
+      btns[[1]]$clickElement()
+      Sys.sleep(runif(1, 1.0, 2.0))
+    }
+  }, silent = TRUE)
+}
+
+```
+
+\
+
+## 3.2) Extraer el primer texto
+
+```{r}
+# Helpers para extraer el primer texto/atributo disponible entre varios selectores
+get_first_text <- function(node, css_vec) {
+  for (css in css_vec) {
+    kids <- try(node$findChildElements("css selector", css), silent = TRUE)
+    if (!inherits(kids, "try-error") && length(kids) > 0) {
+      val <- try(kids[[1]]$getElementText()[[1]], silent = TRUE)
+      if (!inherits(val, "try-error") && !is.null(val) && nchar(val) > 0) return(val)
+    }
+  }
+  NA_character_
+}
+```
+
+## 3.3) Extraer el primer atributo
+
+```{r}
+get_first_attr <- function(node, css_vec, attr) {
+  for (css in css_vec) {
+    kids <- try(node$findChildElements("css selector", css), silent = TRUE)
+    if (!inherits(kids, "try-error") && length(kids) > 0) {
+      val <- try(kids[[1]]$getElementAttribute(attr)[[1]], silent = TRUE)
+      if (!inherits(val, "try-error") && !is.null(val) && nchar(val) > 0) return(val)
+    }
+  }
+  NA_character_
+}
+```
+
+## 3.4) Extraer paguina
+
+```{r}
+
+extraer_pagina <- function(consulta, dmin, dmax, pagina_idx) {
+  Sys.sleep(sample(espera_min:espera_max, 1))  # Pausa aleatoria
+  
+  # Intentamos diferentes selectores de contenedor de resultado (Google cambia clases)
+  contenedores <- remDr$findElements("css selector",
+                                     "div.SoaBEf, div.dbsr, div.Gx5Zad.fP1Qef.xpd.EtOod.pkphOe")
+  
+  if (length(contenedores) == 0) {
+    return(tibble())
+  }
+  
+  rows <- lapply(contenedores, function(b) {
+    titulo <- get_first_text(b, c("div[role='heading']", "h3", "div.JheGif.nDgy9d"))
+    enlace <- get_first_attr(b, c("a.VDXfz", "a"), "href")
+    fuente <- get_first_text(b, c("div.SVJrMe a", "div.CEMjEf span", "span.xQ82C.e8fRJf", "span.wmnc8c"))
+    fecha_texto <- get_first_text(b, c("time", "span.WG9SHc span", "span.OSrXXb"))
+    fecha_iso   <- get_first_attr(b, c("time"), "datetime")
+    resumen     <- get_first_text(b, c("div.GI74Re", "div.Y3v8qd", "div.gG0TJc"))
+    
+    tibble(
+      consulta = consulta,
+      titulo = titulo,
+      resumen = resumen,
+      fuente = fuente,
+      fecha_texto = fecha_texto,
+      fecha_iso = fecha_iso,
+      enlace = enlace,
+      fecha_chunk_desde = as.Date(dmin),
+      fecha_chunk_hasta = as.Date(dmax),
+      pagina = pagina_idx
+    )
+  })
+  
+  bind_rows(rows) %>%
+    filter(!is.na(titulo) | !is.na(enlace)) %>%
+    distinct()
+}
+
+```
+
+## 3.5) Extraer cuerpo completo
+
+```{r}
+extraer_articulo <- function(url) {
+  tryCatch({
+    pagina <- read_html(url)
+    cuerpo <- pagina %>%
+      html_elements("p") %>%
+      html_text(trim = TRUE) %>%
+      paste(collapse = " ")
+    tibble(enlace = url, cuerpo = cuerpo)
+  }, error = function(e) {
+    tibble(enlace = url, cuerpo = NA_character_)
+  })
+}
+```
+
+# 4) Loop principal
+
+## 4.1) Sequencia por meses
+
+```{r}
+# Secuencia por mes (enero 2024 → hoy)
+inicios_mes <- seq(from = floor_date(fecha_inicio, "month"),
+                   to   = floor_date(fecha_fin, "month"),
+                   by   = "1 month")
+fines_mes <- pmin(inicios_mes %m+% months(1) - days(1), fecha_fin)
+
+datos <- list()
+```
+
+## 4.2) Navegacion iterativa por consulta
+
+```{r}
+# Navegamos iterativamente por consulta, mes y paginación (&start)
+for (consulta in consultas) {
+  
+  # Navega a una URL inicial para “despertar” la sesión (manteniendo tu flujo)
+  url_inicial <- build_google_news_url(consulta, inicios_mes[1], fines_mes[1], start = 0, hl = hl, gl = gl)
+  remDr$navigate(url_inicial)
+  aceptar_consentimiento()
+  
+  for (i_mes in seq_along(inicios_mes)) {
+    dmin <- inicios_mes[i_mes]
+    dmax <- fines_mes[i_mes]
+    
+    start <- 0L
+    for (i_pag in 1:max_paginas_por_mes) {
+      message(glue("Scrapeando '{consulta}' | {dmin}–{dmax} | página {i_pag} (start={start})..."))
+      
+      # Cambiar user-agent (decorativo) — igual que tu script
+      try({
+        user_agent <- get_user_agent()
+        remDr$executeScript(paste0(
+          'navigator.__defineGetter__("userAgent", function() { return "', user_agent, '"; });'
+        ))
+      }, silent = TRUE)
+      
+      url <- build_google_news_url(consulta, dmin, dmax, start = start, hl = hl, gl = gl)
+      remDr$navigate(url)
+      aceptar_consentimiento()
+      
+      # Señales de bloqueo/CAPTCHA (texto en el HTML)
+      page_html <- try(remDr$getPageSource()[[1]], silent = TRUE)
+      if (!inherits(page_html, "try-error")) {
+        if (str_detect(page_html, regex("unusual traffic|detected unusual traffic|recaptcha", TRUE))) {
+          warning("Posible bloqueo/CAPTCHA detectado; deteniendo este rango.")
+          break
+        }
+      }
+      
+      df <- extraer_pagina(consulta, dmin, dmax, pagina_idx = i_pag)
+      
+      if (nrow(df) == 0) {
+        # No hay más resultados en este rango/paginación
+        break
+      } else {
+        datos[[length(datos) + 1]] <- df
+        start <- start + 10L  # siguiente página
+        Sys.sleep(runif(1, espera_min + 0.5, espera_max + 1.0))
+      }
+    }
+  }
+}
+```
+
+# 5) Cerramos y guardamos
+
+## 5.1) Cerramos selenium
+
+```{r}
+remDr$close()
+rD$server$stop()
+```
+
+## 5.2) Consolidamos en un df
+
+```{r}
+
+
+tabla_noticias <- bind_rows(datos) %>% distinct(consulta, titulo, enlace, .keep_all = TRUE)
+
+```
+
+## 5.3) Extraer cuerpo de cada noticia y consolidar
+
+```{r}
+detalles <- purrr::map_dfr(tabla_noticias$enlace, extraer_articulo)
+
+tabla_completa <- tabla_noticias %>% left_join(detalles, by = "enlace")
+```
+
+Cerramos conecxiones
+
+```{r}
+closeAllConnections()
+
+```
+
+## 5.4) Exportamos datos
+
+```{r}
+# Exportar a Excel
+write.xlsx(tabla_completa, file = "NOTICIAS_ANTONIO_NARIÑO.xlsx")
+```
+
+\
+
+| **Columna** | **Descripción** |
+|:-----------------------------------|:-----------------------------------|
+| **consulta** | Texto original de la búsqueda que envié a Google (por ejemplo: `"seguridad hurto Bogotá usaquen"`). |
+| **titulo** | Título de la noticia tal como aparece en Google News. |
+| **resumen** | Fragmento o snippet que muestra Google debajo del título (puede estar truncado). |
+| **fuente** | Nombre del medio o portal que publica la noticia (por ejemplo: *El Tiempo*, *Semana*). Puede ser `NA` si el selector no lo encontró. |
+| **fecha_texto** | Fecha visible en la interfaz (por ejemplo: `"hace 3 horas"` o `"12 de marzo de 2024"`). Puede ser `NA` si no se muestra. |
+| **fecha_iso** | Fecha en formato ISO (`YYYY-MM-DDTHH:MM:SSZ`) extraída del atributo `datetime` de la etiqueta `<time>` (si existe). Si no hay `<time>`, queda `NA`. |
+| **enlace** | URL completa de la noticia (enlace externo al medio). |
+| **fecha_chunk_desde** | Fecha de inicio del rango mensual que estaba iterando (por ejemplo: `2023-01-01`). |
+| **fecha_chunk_hasta** | Fecha de fin del rango mensual que estaba iterando (por ejemplo: `2023-01-31`). |
+| **pagina** | Número de página dentro de la paginación de Google News para ese rango (1, 2, 3...). |
+
+------------------------------------------------------------------------

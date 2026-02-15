@@ -1,0 +1,556 @@
+---
+title: "Cuaderno consolidado de noticias de google news"
+#author: "Juan José Echeverry"
+output: 
+  html_notebook:
+    toc: true          # Activa tabla de contenido
+    toc_depth: 3       # Profundidad de la TOC (por defecto es 3)
+    toc_float: true    # Tabla de contenido flotante
+    #number_sections: true  # Numera secciones
+    fig_width: 7       # Ancho predeterminado de figuras (en pulgadas)
+    fig_height: 5      # Alto predeterminado de figuras (en pulgadas)
+    #theme: united      # Tema visual de Bootstrap (opcional)
+    highlight: tango    # Tema de resaltado de código
+---
+
+
+# Introduccion
+
+**Primero**, librerias necesarias
+```{r}
+library(readxl)
+library(urltools)
+library(dplyr)
+library(stringr)
+library(stringi)
+library(openxlsx)
+library(dplyr)
+library(stringr)
+library(textclean)
+
+```
+
+
+## Importar datos
+
+**Primero**, importamos datos de las 19 localidades
+
+
+```{r}
+
+ANTONIO_NARIÑO <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Antonio Nariño/ANTONIO NARIÑO 2022-01-01 TO 2025-09-13.xlsx")
+
+BARRIOS_UNIDOS <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Barrios Unidos/BARRIOS UNIDOS 2022-01-01 TO 2025-09-13.xlsx")
+
+BOSA <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Bosa/BOSA 2022-01-01 TO 2025-09-13.xlsx")
+
+CANDELARIA <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Candelaria/CANDELARIA 2022-01-01 TO 2025-09-13.xlsx")
+
+CHAPINERO <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Chapinero/CHAPINERO 2022-01-01 TO 2025-09-13.xlsx")
+
+CIUDAD_BOLIVAR <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Ciudad Bolivar/CIUDAD BOLÍVAR 2022-01-01 TO 2025-09-13.xlsx")
+
+ENGATIVA <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Engativa/ENGATIVÁ 2022-01-01 TO 2025-09-13.xlsx")
+
+FONTIBON <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Fontibon/FONTIBÓN 2022-01-01 TO 2025-09-13.xlsx")
+
+KENNEDY <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Kennedy/KENNEDY 2022-01-01 TO 2025-09-13.xlsx")
+
+LOS_MARTIRES <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Los Martires/LOS MÁRTIRES 2022-01-01 TO 2025-09-13.xlsx")
+
+PUENTE_ARANDA <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Puente Aranda/PUENTE ARANDA 2022-01-01 TO 2025-09-14.xlsx")
+
+RAFAEL_URIBE_URIBE <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Rafael Uribe Uribe/RAFAEL URIBE URIBE 2022-01-01 TO 2025-09-14.xlsx")
+
+SAN_CRISTOBAL <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/San Cristobal/SAN CRISTÓBAL 2022-01-01 TO 2025-09-14.xlsx")
+
+SANTA_FE <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Santa Fe/SANTA FE 2022-01-01 TO 2025-09-15.xlsx")
+
+SUBA <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/SUBA/SUBA 2022-01-01 TO 2025-09-14.xlsx")
+
+TEUSAQUILLO <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Teusaquillo/TEUSAQUILLO 2022-01-01 TO 2025-09-14.xlsx")
+
+TUNJUELITO <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Tunjuelito/TUNJUELITO 2022-01-01 TO 2025-09-14.xlsx")
+
+USAQUEN <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Usaquen/USAQUÉN 2022-01-01 TO 2025-09-14.xlsx")
+
+USME <- read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/Scraping/Scraping Google News/Scraping_Selenium/Sacraping Por localidades/Usme/USME 2022-01-01 TO 2025-09-14.xlsx")
+
+
+```
+
+
+**Segundo**, consolidamos en un solo df
+```{r}
+NOTICIAS_LOCALIDADES <- rbind(
+  ANTONIO_NARIÑO,
+  BARRIOS_UNIDOS,
+  BOSA,
+  CANDELARIA,
+  CHAPINERO,
+  CIUDAD_BOLIVAR,
+  ENGATIVA,
+  FONTIBON,
+  KENNEDY,
+  LOS_MARTIRES,
+  PUENTE_ARANDA,
+  RAFAEL_URIBE_URIBE,
+  SAN_CRISTOBAL,
+  SANTA_FE,
+  SUBA,
+  TEUSAQUILLO,
+  TUNJUELITO,
+  USAQUEN,
+  USME
+  )
+```
+
+
+# 2) Preparacion de los datos)
+
+## 2.1) Eliminar noticias que no sean de bogota
+
+```{r}
+# Ciudad a buscar (normalizada sin acento)
+ciudad <- "Bogotá"
+ciudad_normalizada <- stri_trans_general(ciudad, "Latin-ASCII")
+
+# Filtramos los datos
+NOTICIAS_LOCALIDADES_2.1 <- NOTICIAS_LOCALIDADES %>%
+  mutate(
+    titulo_norm  = stri_trans_general(titulo, "Latin-ASCII"),
+    resumen_norm = stri_trans_general(resumen, "Latin-ASCII"),
+    cuerpo_norm  = stri_trans_general(cuerpo, "Latin-ASCII")
+  ) %>%
+  filter(
+    str_detect(titulo_norm, fixed(ciudad_normalizada, ignore_case = TRUE)) |
+    str_detect(resumen_norm, fixed(ciudad_normalizada, ignore_case = TRUE)) |
+    str_detect(cuerpo_norm, fixed(ciudad_normalizada, ignore_case = TRUE))
+  ) %>% 
+  select(-titulo_norm,-resumen_norm,-cuerpo_norm)
+
+```
+
+
+## 2.2) Identificar las fuentes de las noticias
+```{r}
+NOTICIAS_LOCALIDADES_2.2 <- NOTICIAS_LOCALIDADES_2.1 %>%
+  mutate(fuente = domain(enlace))
+
+```
+
+## 2.3) Identificar las localidades
+```{r}
+NOTICIAS_LOCALIDADES_2.3 <- NOTICIAS_LOCALIDADES_2.2 %>%
+  mutate(
+    localidad = str_extract(consulta, "(?<=\\+hurtos\\s).*$"), # extrae lo que sigue a "+hurtos"
+    localidad = str_replace_all(localidad, "\\+", " "),       # cambia "+" por espacio
+    localidad = str_squish(str_to_title(localidad))           # quita espacios extra y pone mayúsculas iniciales
+  ) %>% 
+  select(-consulta)
+```
+
+
+
+## 2.4) Eliminar noticias duplicadas
+
+```{r}
+NOTICIAS_LOCALIDADES_2.4 <- NOTICIAS_LOCALIDADES_2.3 %>%
+  # Indicamos si la localidad aparece en titulo o resumen
+  mutate(
+    localidad_en_texto = str_detect(str_to_upper(titulo), str_to_upper(localidad)) |
+      str_detect(str_to_upper(resumen), str_to_upper(localidad))
+  ) %>%
+  # Dentro de cada enlace, ordenamos poniendo TRUE primero
+  arrange(enlace, desc(localidad_en_texto)) %>%
+  # Nos quedamos solo con la primera fila por enlace
+  distinct(enlace, .keep_all = TRUE)
+```
+
+Ese código crea un nuevo dataframe (NOTICIAS_LOCALIDADES_2.4) a partir de NOTICIAS_LOCALIDADES_2.3, en el que primero identifica si el nombre de la localidad aparece en el título o el resumen de cada noticia, luego dentro de las noticias con el mismo enlace ordena dando prioridad a las que sí mencionan la localidad, y finalmente elimina los duplicados conservando solo una fila por enlace (la más relevante según ese criterio).
+
+```{r}
+# Localidades_unicas <- count(NOTICIAS_LOCALIDADES_2.4,localidad)
+# fuentes_unicas <-  count(NOTICIAS_LOCALIDADES_2.4,fuente)
+
+```
+
+
+# 3) Eliminar patrones de inicio y fin en paguinas que lo tienen
+
+## 3.1) Identificar noticias que son solo videos 
+```{r}
+casos_sin_cuerpo <- NOTICIAS_LOCALIDADES_2.10 %>%
+  filter(
+    !is.na(titulo) & str_trim(titulo) != "",
+    !is.na(resumen) & str_trim(resumen) != "",
+    is.na(cuerpo_limpio) | str_trim(cuerpo_limpio) == "" |
+      (
+        str_detect(str_to_lower(cuerpo_limpio), "en este portal|ver video|haz clic|video completo") &
+          !str_detect(str_to_lower(cuerpo_limpio), "bogotá|robo|hurto|localidades|seguridad")  # palabras clave del hecho
+      ) |
+      str_detect(str_to_lower(cuerpo_limpio), "copyright|prohibida su reproducción|uso para el desarrollo de programas de inteligencia artificial")
+  )
+
+
+```
+
+
+## 3.1) Identificar los patrones que mas se repiten
+```{r}
+# Extrae las primeras y últimas N palabras/frases de cada noticia
+N <- 25 # Puedes ajustar este número según la longitud típica de los bloques repetitivos
+
+# Función para extraer las primeras N palabras
+primeras_palabras <- function(texto, n = N) {
+  palabras <- unlist(str_split(texto, "\\s+"))
+  paste(palabras[1:min(n, length(palabras))], collapse = " ")
+}
+
+# Función para extraer las últimas N palabras
+ultimas_palabras <- function(texto, n = N) {
+  palabras <- unlist(str_split(texto, "\\s+"))
+  paste(tail(palabras, n), collapse = " ")
+}
+
+# Aplica las funciones al dataframe
+patrones <- NOTICIAS_LOCALIDADES_2.4 %>%
+  mutate(
+    inicio = sapply(cuerpo, primeras_palabras),
+    final = sapply(cuerpo, ultimas_palabras)
+  )
+
+# Cuenta los patrones más repetidos al inicio
+patrones_inicio <- patrones %>%
+  count(inicio, sort = TRUE) %>%
+  top_n(10, n)
+
+# Cuenta los patrones más repetidos al final
+patrones_final <- patrones %>%
+  count(final, sort = TRUE) %>%
+  top_n(10, n)
+
+# Muestra los 10 patrones más frecuentes al inicio y final
+print("Patrones más repetidos al INICIO:")
+print(patrones_inicio)
+
+print("Patrones más repetidos al FINAL:")
+print(patrones_final)
+
+```
+
+
+
+## 3.2) www.pulzo.com
+
+Filtro 1:
+
+```{r}
+# Frase clave que marca el final del bloque repetitivo de inicio
+frase_final_bloque_inicio <- "Las noticias más importantes, al instante"
+
+# Patrón para eliminar todo hasta e incluyendo la frase clave
+patron_inicio <- paste0("^.*?", frase_final_bloque_inicio)
+
+# Patrón para el bloque final repetitivo
+patron_final <- "(\\* Pulzo.com se escribe con Z|Facebook Twitter TikTok|Gracias por ayudarnos a crecer y mejorar!|Clic aquí para cancelar tú suscripción!|Recibe en tu correo las noticias más importantes del día).*?$"
+
+limpiar_cuerpo <- function(texto) {
+  texto <- textclean::replace_white(texto)
+  # Elimina todo el bloque de inicio (hasta e incluyendo la frase clave)
+  texto <- str_replace(texto, patron_inicio, "")
+  # Elimina bloque final si existe
+  texto <- str_remove(texto, patron_final)
+  texto <- str_trim(texto)
+  return(texto)
+}
+
+NOTICIAS_LOCALIDADES_2.5 <- NOTICIAS_LOCALIDADES_2.4 %>%
+  mutate(cuerpo_limpio = limpiar_cuerpo(cuerpo))
+```
+
+Filtro 2:
+
+```{r}
+# Frase clave que marca el final del bloque repetitivo de inicio
+frase_final_bloque_inicio <- "Has enviado con éxito esta nota a: síguenos en google news"
+
+# Patrón para eliminar todo hasta e incluyendo la frase clave
+patron_inicio <- paste0("^.*?", frase_final_bloque_inicio)
+
+# Patrón para el bloque final repetitivo
+patron_final <- paste0(
+  "(LO\\sÚLTIMO.*?suscribirte a nuestros boletines\\.|",
+  "Ahora recibirás en tú correo todas las noticias de actualidad en Colombia\\.|",
+  "Gracias por preferirnos|",
+  "El correo ya está suscrito a nuestro boletín\\.|",
+  "¿Deseas cancelar la suscripción\\?|",
+  "ha sido eliminado exitosamente de nuestra base de datos\\.|",
+  "Temas Relacionados:.*?detalles\\.|",
+  "¡Gracias por ayudarnos a crecer y mejorar!|",
+  "Facebook Twitter TikTok Youtube Instagram Whatsapp|",
+  "Recibe en tu correo?las noticias más?importantes del día|",
+  "¡Te has suscrito con éxito a nuestro boletín!|",
+  "¡Tú correo ya está inscrito\\.|",
+  "Clic aquí para cancelar tú suscripción!).*?$"
+)
+
+
+
+# Funcion de limpieza
+limpiar_cuerpo <- function(texto) {
+  texto <- textclean::replace_white(texto)
+  # Elimina todo el bloque de inicio (hasta e incluyendo la frase clave)
+  texto <- str_replace(texto, patron_inicio, "")
+  # Elimina bloque final si existe
+  texto <- str_remove(texto, patron_final)
+  texto <- str_trim(texto)
+  return(texto)
+}
+
+NOTICIAS_LOCALIDADES_2.6 <- NOTICIAS_LOCALIDADES_2.5 %>%
+  mutate(cuerpo_limpio = limpiar_cuerpo(cuerpo_limpio))
+```
+
+Filtro 3:
+```{r}
+# Frase clave que marca el final del bloque repetitivo de inicio
+frase_final_bloque_inicio <- "profesionales por su independencia, credibilidad y objetividad."
+
+# Patrón para eliminar todo hasta e incluyendo la frase clave
+patron_inicio <- paste0("^.*?", frase_final_bloque_inicio)
+
+# Patrón para el bloque final repetitivo
+patron_final <- paste0(
+  "(",
+  "LO\\sÚLTIMO.*?suscribirte a nuestros boletines\\.|",
+  "Ahora recibirás en tú correo todas las noticias de actualidad en Colombia\\.|",
+  "Gracias por preferirnos|",
+  "El correo ya está suscrito a nuestro boletín\\.|",
+  "¿Deseas cancelar la suscripción\\?|",
+  "ha sido eliminado exitosamente de nuestra base de datos\\.|",
+  "Temas Relacionados:.*?correo electronico\\.|",
+  "¡Gracias por ayudarnos a crecer y mejorar!|",
+  "Facebook Twitter TikTok Youtube Instagram Whatsapp|",
+  "Recibe en tu correo(?:las noticias más)?importantes del día|",
+  "¡Te has suscrito con éxito a nuestro boletín!|",
+  "¡Tú correo ya está inscrito\\.|",
+  "Clic aquí para cancelar tú suscripción!|",
+  "\\* Pulzo\\.com se escribe con Z|",
+  "Lee todas las noticias de nación hoy aquí\\.|",
+  "Nota relacionada:.*?llamas\\.",
+  ").*?$"
+)
+
+# Funcion de limpieza
+limpiar_cuerpo <- function(texto) {
+  texto <- textclean::replace_white(texto)
+  # Elimina todo el bloque de inicio (hasta e incluyendo la frase clave)
+  texto <- str_replace(texto, patron_inicio, "")
+  # Elimina bloque final si existe
+  texto <- str_remove(texto, patron_final)
+  texto <- str_trim(texto)
+  return(texto)
+}
+
+NOTICIAS_LOCALIDADES_2.7 <- NOTICIAS_LOCALIDADES_2.6 %>%
+  mutate(cuerpo_limpio = limpiar_cuerpo(cuerpo_limpio))
+
+
+```
+
+
+## 3.3) bogota.gov.co
+
+Filtro 1:
+
+```{r}
+
+
+frase_clave <- "Dirección Distrital de Relaciones Internacionales \\(DDRI\\)\\. @BogotaInter_nal"
+
+# patrón robusto para el pie de página institucional
+patron_pie <- "Cra\\s*8[^\\n]{0,150}Código postal[:\\s]*\\d{5}"
+
+NOTICIAS_LOCALIDADES_2.8 <- NOTICIAS_LOCALIDADES_2.7 %>%
+  mutate(
+    # --- 1. Normalizar saltos antes de procesar ---
+    cuerpo_tmp = str_replace_all(cuerpo_limpio, "[\r\n]+", " "),
+    
+    # --- 2. Ubicar fin del encabezado institucional ---
+    pos_header = str_locate(cuerpo_tmp, frase_clave)[,2],
+    
+    # --- 3. Recortar encabezado si existe ---
+    cuerpo_tmp = ifelse(!is.na(pos_header), str_sub(cuerpo_tmp, pos_header + 1), cuerpo_tmp),
+    
+    # --- 4. Ubicar inicio del bloque de contacto ---
+    pos_footer = str_locate(cuerpo_tmp, patron_pie)[,1],
+    
+    # fallback 1: si no encuentra, buscar "Tel:"
+    pos_footer = ifelse(is.na(pos_footer), str_locate(cuerpo_tmp, "Tel:")[,1], pos_footer),
+    
+    # fallback 2: buscar "Cra 8"
+    pos_footer = ifelse(is.na(pos_footer), str_locate(cuerpo_tmp, "Cra\\s*8")[,1], pos_footer),
+    
+    # --- 5. Recortar pie si existe ---
+    cuerpo_limpio = ifelse(!is.na(pos_footer),
+                           str_sub(cuerpo_tmp, 1, pos_footer - 1),
+                           cuerpo_tmp),
+    
+    # --- 6. Limpieza final ---
+    cuerpo_limpio = str_squish(cuerpo_limpio)
+  ) %>%
+  select(-c(cuerpo_tmp, pos_header, pos_footer))
+
+
+```
+
+Filtro 2:
+
+```{r}
+
+frase_clave <- "Síguenos en Google Noticias Únete a nuestro canal de noticias en WhatsApp "
+
+# patrón robusto para el pie de página institucional
+patron_pie <- "Cra\\s*8[^\\n]{0,150}Código postal[:\\s]*\\d{5}"
+
+NOTICIAS_LOCALIDADES_2.9 <- NOTICIAS_LOCALIDADES_2.8 %>%
+  mutate(
+    # --- 1. Normalizar saltos antes de procesar ---
+    cuerpo_tmp = str_replace_all(cuerpo_limpio, "[\r\n]+", " "),
+    
+    # --- 2. Ubicar fin del encabezado institucional ---
+    pos_header = str_locate(cuerpo_tmp, frase_clave)[,2],
+    
+    # --- 3. Recortar encabezado si existe ---
+    cuerpo_tmp = ifelse(!is.na(pos_header), str_sub(cuerpo_tmp, pos_header + 1), cuerpo_tmp),
+    
+    # --- 4. Ubicar inicio del bloque de contacto ---
+    pos_footer = str_locate(cuerpo_tmp, patron_pie)[,1],
+    
+    # fallback 1: si no encuentra, buscar "Tel:"
+    pos_footer = ifelse(is.na(pos_footer), str_locate(cuerpo_tmp, "Tel:")[,1], pos_footer),
+    
+    # fallback 2: buscar "Cra 8"
+    pos_footer = ifelse(is.na(pos_footer), str_locate(cuerpo_tmp, "Cra\\s*8")[,1], pos_footer),
+    
+    # --- 5. Recortar pie si existe ---
+    cuerpo_limpio = ifelse(!is.na(pos_footer),
+                           str_sub(cuerpo_tmp, 1, pos_footer - 1),
+                           cuerpo_tmp),
+    
+    # --- 6. Limpieza final ---
+    cuerpo_limpio = str_squish(cuerpo_limpio)
+  ) %>%
+  select(-c(cuerpo_tmp, pos_header, pos_footer))
+
+```
+
+
+## 3.4) www.eltiempo.com
+
+Filtro 1:
+
+```{r}
+frase_clave <- "Te recomiendo estos artículos para ampliar tu búsqueda."
+
+# patrón robusto para el pie de página institucional
+patron_pie <- paste0(
+  "(",
+  "Sigue toda la información de Bogotá en Facebook y X.*?",
+  "BOLETINES EL TIEMPO.*?",
+  "GOOGLE NEWS.*?",
+  "WHATSAPP.*?",
+  "APP.*?",
+  "SUSCRÍBETE AL DIGITAL.*?",
+  "COPYRIGHT © \\d{4} EL TIEMPO Casa Editorial.*?",
+  "MIEMBRO DE Grupo de diarios de América.*?",
+  ").*?$"
+)
+
+
+NOTICIAS_LOCALIDADES_2.10 <- NOTICIAS_LOCALIDADES_2.9 %>%
+  mutate(
+    # --- 1. Normalizar saltos antes de procesar ---
+    cuerpo_tmp = str_replace_all(cuerpo_limpio, "[\r\n]+", " "),
+    
+    # --- 2. Ubicar fin del encabezado institucional ---
+    pos_header = str_locate(cuerpo_tmp, frase_clave)[,2],
+    
+    # --- 3. Recortar encabezado si existe ---
+    cuerpo_tmp = ifelse(!is.na(pos_header), str_sub(cuerpo_tmp, pos_header + 1), cuerpo_tmp),
+    
+    # --- 4. Ubicar inicio del bloque de contacto ---
+    pos_footer = str_locate(cuerpo_tmp, patron_pie)[,1],
+    
+    # fallback 1: si no encuentra, buscar "Tel:"
+    pos_footer = ifelse(is.na(pos_footer), str_locate(cuerpo_tmp, "Tel:")[,1], pos_footer),
+    
+    # fallback 2: buscar "Cra 8"
+    pos_footer = ifelse(is.na(pos_footer), str_locate(cuerpo_tmp, "Cra\\s*8")[,1], pos_footer),
+    
+    # --- 5. Recortar pie si existe ---
+    cuerpo_limpio = ifelse(!is.na(pos_footer),
+                           str_sub(cuerpo_tmp, 1, pos_footer - 1),
+                           cuerpo_tmp),
+    
+    # --- 6. Limpieza final ---
+    cuerpo_limpio = str_squish(cuerpo_limpio)
+  ) %>%
+  select(-c(cuerpo_tmp, pos_header, pos_footer))
+```
+
+## 3. ) concejodebogota.gov.co
+
+## 3....) Validacion
+```{r}
+# Extrae las primeras y últimas N palabras/frases de cada noticia
+N <- 25 # Puedes ajustar este número según la longitud típica de los bloques repetitivos
+
+# Función para extraer las primeras N palabras
+primeras_palabras <- function(texto, n = N) {
+  palabras <- unlist(str_split(texto, "\\s+"))
+  paste(palabras[1:min(n, length(palabras))], collapse = " ")
+}
+
+# Función para extraer las últimas N palabras
+ultimas_palabras <- function(texto, n = N) {
+  palabras <- unlist(str_split(texto, "\\s+"))
+  paste(tail(palabras, n), collapse = " ")
+}
+
+# Aplica las funciones al dataframe
+patrones <- NOTICIAS_LOCALIDADES_2.6 %>%
+  mutate(
+    inicio = sapply(cuerpo_limpio, primeras_palabras),
+    final = sapply(cuerpo_limpio, ultimas_palabras)
+  )
+
+# Cuenta los patrones más repetidos al inicio
+patrones_inicio <- patrones %>%
+  count(inicio, sort = TRUE) %>%
+  top_n(10, n)
+
+# Cuenta los patrones más repetidos al final
+patrones_final <- patrones %>%
+  count(final, sort = TRUE) %>%
+  top_n(10, n)
+
+# Muestra los 10 patrones más frecuentes al inicio y final
+print("Patrones más repetidos al INICIO:")
+print(patrones_inicio)
+
+print("Patrones más repetidos al FINAL:")
+print(patrones_final)
+```
+
+
+# 4) Exportamos datos
+```{r}
+#  Exportar a Excel
+ruta <- "~/Library/Mobile Documents/com~apple~CloudDocs/Investigacion/Semillero OIKOS/OIKOS/Percepcion de seguridad/Programacion/BASES DE DATOS/google news/NOTICIAS_LOCALIDADES_FINAL.xlsx"
+
+write.xlsx(NOTICIAS_LOCALIDADES_2.4, file = ruta)
+```
+
+
