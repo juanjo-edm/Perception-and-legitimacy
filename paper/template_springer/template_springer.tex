@@ -1,0 +1,586 @@
+%Version 2.1 April 2023
+% See section 11 of the User Manual for version history
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                                                 %%
+%% Please do not use \input{...} to include other tex files.       %%
+%% Submit your LaTeX manuscript as one .tex document.              %%
+%%                                                                 %%
+%% All additional figures and files should be attached             %%
+%% separately and not embedded in the \TeX\ document itself.       %%
+%%                                                                 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[sn-basic,pdflatex]{sn-jnl}
+
+%%%% Standard Packages
+%%<additional latex packages if required can be included here>
+
+\usepackage{graphicx}%
+\usepackage{multirow}%
+\usepackage{amsmath,amssymb,amsfonts}%
+\usepackage{amsthm}%
+\usepackage{mathrsfs}%
+\usepackage[title]{appendix}%
+\usepackage{xcolor}%
+\usepackage{textcomp}%
+\usepackage{manyfoot}%
+\usepackage{booktabs}%
+\usepackage{algorithm}%
+\usepackage{algorithmicx}%
+\usepackage{algpseudocode}%
+\usepackage{listings}%
+%%%%
+
+%%%%%=============================================================================%%%%
+%%%%  Remarks: This template is provided to aid authors with the preparation
+%%%%  of original research articles intended for submission to journals published
+%%%%  by Springer Nature. The guidance has been prepared in partnership with
+%%%%  production teams to conform to Springer Nature technical requirements.
+%%%%  Editorial and presentation requirements differ among journal portfolios and
+%%%%  research disciplines. You may find sections in this template are irrelevant
+%%%%  to your work and are empowered to omit any such section if allowed by the
+%%%%  journal you intend to submit to. The submission guidelines and policies
+%%%%  of the journal take precedence. A detailed User Manual is available in the
+%%%%  template package for technical guidance.
+%%%%%=============================================================================%%%%
+
+\newtheorem{theorem}{Theorem}%
+\newtheorem{proposition}[theorem]{Proposition}%
+\theoremstyle{remark}
+\newtheorem{example}{Example}%
+\newtheorem{remark}{Remark}%
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}%
+
+
+
+\raggedbottom
+
+
+
+
+% tightlist command for lists without linebreak
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+
+
+\begin{document}
+
+
+\title[Article Title running]{Article Title}
+
+%%=============================================================%%
+%% Prefix	-> \pfx{Dr}
+%% GivenName	-> \fnm{Joergen W.}
+%% Particle	-> \spfx{van der} -> surname prefix
+%% FamilyName	-> \sur{Ploeg}
+%% Suffix	-> \sfx{IV}
+%% NatureName	-> \tanm{Poet Laureate} -> Title after name
+%% Degrees	-> \dgr{MSc, PhD}
+%% \author*[1,2]{\pfx{Dr} \fnm{Joergen W.} \spfx{van der} \sur{Ploeg} \sfx{IV} \tanm{Poet Laureate}
+%%                 \dgr{MSc, PhD}}\email{iauthor@gmail.com}
+%%=============================================================%%
+
+\author*[1,2]{\pfx{Dr.} \fnm{Leading} \spfx{van} \sur{Author} \sfx{III} \tanm{Poet
+Laureate} \dgr{MSc,
+PhD}}\email{\href{mailto:abc@def}{\nolinkurl{abc@def}}}
+
+\author[2]{\fnm{Second} \sur{Author} }
+
+
+
+  \affil*[1]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\city{City}, \country{Country}, \postcode{100190}, \state{State}, \street{Street}}}
+  \affil*[2]{\orgname{Other Organisation}}
+
+\abstract{This paper examines the relationship between perceived
+insecurity, institutional legitimacy, and computational text analysis in
+Bogota. The study combines administrative crime data with news-based
+textual evidence to evaluate how public discourse and officially
+recorded high-impact theft evolve over time. Methodologically, it
+integrates web scraping, sentiment analysis, topic modeling, collocation
+analysis, and an experimental retrieval-augmented generation agent built
+in R. The article contributes a replicable macro-level approach for
+studying urban security perceptions and their links with legitimacy and
+public trust.}
+
+\keywords{seguridad, legitimidad, NLP, machine learning, Bogota}
+
+
+
+\maketitle
+
+\section{Introducción}\label{introducciuxf3n}
+
+En 2016, en el Foro Económico Mundial, se introdujo el término Cuarta
+Revolución Industrial, asociado a la expansión del Big Data (Bayod,
+2018). Esta innovación ha abierto nuevas oportunidades para comprender
+fenómenos sociales mediante el uso de herramientas de procesamiento de
+lenguaje natural (NLP) y modelos de lenguaje de gran escala (LLM). Estas
+tecnologías han demostrado eficacia en tareas como la clasificación de
+credibilidad, la detección de sesgos y el análisis de emociones en
+textos \citep{giachanou2021}.
+
+En este nuevo escenario tecnológico, donde la inteligencia artificial es
+un agente protagonista, emergen herramientas computacionales que
+permiten el procesamiento de información y datos capaces de reconfigurar
+los enfoques investigativos de las ciencias sociales. Ello permite
+abordar problemáticas complejas con volúmenes masivos de información,
+ampliar el alcance del análisis y estandarizar fenómenos que hasta hace
+poco eran difíciles de medir. Por ejemplo, la percepción humana, la
+confianza del público o la legitimidad pueden volverse trazables
+mediante herramientas de NLP y LLM \citep{tindall2011}.
+
+Dicho esto, la legitimidad institucional y la percepción pública ofrecen
+un punto de entrada especialmente útil para el estudio de emociones
+políticas y factores de percepción de seguridad. Las nuevas herramientas
+basadas en Big Data permiten absorber opiniones expresadas en redes
+sociales o en piezas periodísticas, habilitando nuevas formas de abordar
+fenómenos contemporáneos \citep{etter2016}. En el contexto local, Bogotá
+enfrenta un serio desafío relacionado con la percepción de inseguridad.
+Como señala Garzón \citep{garzon2019}, resulta fundamental realizar un
+análisis cuantitativo de la seguridad, dado que los bogotanos han
+enfrentado a lo largo de los años numerosos problemas asociados a los
+hurtos. La percepción de inseguridad no solo compromete la calidad de
+vida de los residentes, sino que también incide en la confianza
+política, limita el dinamismo económico y debilita la legitimidad
+institucional.
+
+La literatura sobre legitimidad institucional destaca su papel en la
+estabilidad política, el desarrollo económico y la construcción de
+confianza social. No obstante, persiste un vacío de conocimiento
+derivado de la ausencia de metodologías estandarizadas que permitan
+medir la legitimidad desde una perspectiva comparativa y en tiempo real,
+lo que ha sido denominado como la ``jungla metodológica'' (Díez-Martín,
+2021). De este modo, resulta pertinente avanzar hacia un enfoque que
+supere las limitaciones micro y aporte instrumentos comparables, capaces
+de integrar dimensiones emocionales y sociales más amplias. Tal
+perspectiva permitiría no solo enriquecer la comprensión académica del
+concepto de legitimidad, sino también generar evidencia útil para la
+formulación de políticas públicas orientadas a fortalecer la confianza
+institucional y atender problemáticas como la seguridad y el turismo en
+contextos urbanos \citep{lopezbalboa2021}.
+
+Para consolidar esta idea, Carver \citep{carver2009} considera que el
+Estado no puede analizarse únicamente por matices aislados, sino como un
+conjunto de interacciones propias de un engranaje social. Esta teoría se
+presta para comprender la legitimidad y la confianza política no solo
+como un estado de validez, sino como un nodo dentro de una red de
+relaciones. Desde esta perspectiva, la legitimidad emerge como resultado
+de flujos de confianza, validación pública y reconocimiento.
+
+En este contexto, el aprovechamiento de fuentes de datos no
+tradicionales, como los textos generados por usuarios en plataformas
+digitales, emerge como una alternativa innovadora para capturar
+percepciones sociales en tiempo real. A través del análisis de contenido
+textual mediante técnicas de NLP y modelos de lenguaje de gran escala,
+es posible transformar opiniones, experiencias y narrativas en
+información cuantificable, habilitando una aproximación más dinámica y
+menos dependiente de encuestas tradicionales. Paralelamente, el análisis
+emocional del discurso adquiere especial relevancia, dado que las
+percepciones de inseguridad se expresan no solo mediante evaluaciones
+racionales, sino también a través de respuestas afectivas. Desde esta
+óptica, el modelo de Plutchik \citep{plutchik2003} proporciona un marco
+analítico adecuado para identificar patrones emocionales subyacentes en
+el texto, reconociendo que las emociones no presentan límites rígidos ni
+se manifiestan de manera aislada. Asimismo, el estudio de las
+percepciones de turistas representa una oportunidad relevante para
+evaluar la seguridad urbana y la legitimidad institucional desde una
+perspectiva externa, ampliando los enfoques tradicionalmente centrados
+en la población residente.
+
+Bajo estas consideraciones, la presente investigación propone una
+metodología que integra herramientas de Big Data y procesamiento de
+lenguaje natural para analizar la percepción de inseguridad asociada a
+los hurtos en Bogotá, a partir de información textual extraída de Google
+News. Con ello, se busca contribuir a la literatura sobre seguridad
+urbana y legitimidad institucional, atenuando el vacío metodológico
+existente y aportando un enfoque macro, replicable y comparativo.
+Finalmente, el estudio no solo profundiza en la comprensión del impacto
+de la inseguridad sobre la confianza institucional y el desempeño
+económico, sino que también ofrece insumos relevantes para el diseño de
+políticas públicas orientadas al fortalecimiento de la seguridad y la
+legitimidad en contextos urbanos complejos.
+
+\section{Revisión de la literatura}\label{revisiuxf3n-de-la-literatura}
+
+\subsection{Análisis de seguridad}\label{anuxe1lisis-de-seguridad}
+
+La relación entre criminalidad y percepción de seguridad en Bogotá ha
+sido abordada con profundidad por diversos autores, entre ellos Anzola
+Morales \citep{anzola2019}, quien examina cómo la evolución del crimen
+entre 2010 y 2017 incidió en la manera en que los ciudadanos perciben su
+entorno urbano. A partir de la Encuesta de Percepción y Victimización y
+de los registros de la Policía Nacional, el autor emplea un modelo logit
+con efectos fijos para identificar que tres delitos de alto impacto,
+hurtos a personas, residencias y automotores, influyen
+significativamente en la transición del sentimiento de seguridad a
+inseguridad. Asimismo, concluye que delitos que atentan directamente
+contra la integridad física, como el homicidio o las lesiones
+personales, no generan un efecto marginal significativo sobre la
+percepción de seguridad.
+
+Estos hallazgos pueden interpretarse a la luz de la teoría económica del
+crimen desarrollada por Becker \citep{becker1968}, quien plantea que los
+individuos toman decisiones racionales basadas en la comparación entre
+beneficios esperados y costos esperados, donde la probabilidad percibida
+de ocurrencia juega un papel central. En este sentido, aunque el
+homicidio sea objetivamente más grave, su menor probabilidad relativa
+frente a delitos recurrentes puede generar un menor impacto en la
+percepción cotidiana del riesgo. Así, la percepción de inseguridad se
+configura como una evaluación subjetiva del entorno basada en
+expectativas probabilísticas, más que en la magnitud del daño potencial.
+
+En esta línea, Garzón \citep{garzon2019} amplía el análisis al demostrar
+que la percepción de inseguridad incide directamente en las decisiones
+económicas individuales. Esto evidencia que la inseguridad percibida no
+solo afecta el bienestar individual, sino que también altera patrones de
+consumo, inversión y confianza institucional. No obstante, persisten
+vacíos en la identificación de mecanismos causales de largo plazo y en
+la medición de impactos sectoriales específicos, lo que justifica
+profundizar en el análisis de la percepción como determinante
+estructural del desarrollo económico urbano.
+
+\subsection{Análisis de machine
+learning}\label{anuxe1lisis-de-machine-learning}
+
+En los últimos años, los modelos de procesamiento de lenguaje natural y,
+en general, las aplicaciones de machine learning han transformado de
+manera sustancial la forma en que se gestionan, interpretan y predicen
+patrones a partir de grandes volúmenes de datos. De acuerdo con Moreira
+et al. \citep{moreira2021}, estas herramientas han demostrado eficacia
+en la búsqueda, clasificación y organización de información, alcanzando
+niveles de eficiencia y velocidad que superan ampliamente a muchos
+enfoques tradicionales. No obstante, dicho progreso plantea también
+desafíos asociados con la comprensión semántica, el sesgo algorítmico y
+la dependencia de la calidad de los datos de entrenamiento.
+
+En la literatura reciente, el machine learning ha sido ampliamente
+aplicado en el ámbito de la seguridad y el análisis criminal, destacando
+especialmente el uso de modelos supervisados. Por ejemplo, Halford y
+Gibson \citep{halford2025} muestran que, mediante el algoritmo Random
+Forest, es posible entrenar modelos capaces de reconocer delitos con
+características similares. En esa misma línea, el algoritmo propuesto
+por Breiman \citep{breiman2001} constituye uno de los enfoques más
+utilizados en problemas de clasificación, ya que reduce el riesgo de
+sobreajuste mediante la agregación de múltiples árboles de decisión y
+permite manejar eficientemente un elevado número de variables
+predictoras. Desde una aproximación empírica, Kim y Lee \citep{kim2023}
+analizan la relación entre el entorno urbano y los índices de
+criminalidad utilizando un modelo basado en árboles de decisión por
+gradiente para identificar relaciones no lineales entre variables
+ambientales y la incidencia de delitos.
+
+Dentro de estas aplicaciones, el análisis de sentimiento se consolida
+como una herramienta clave para transformar datos textuales en variables
+cuantificables. A través de técnicas de procesamiento de lenguaje
+natural, este enfoque permite clasificar automáticamente la polaridad
+emocional de textos y capturar percepciones subjetivas contenidas en
+grandes volúmenes de información no estructurada. En particular, los
+modelos basados en arquitecturas de transformadores como BERT
+\citep{devlin2019} han mostrado un desempeño superior en tareas de
+clasificación semántica al incorporar el contexto completo de las
+palabras dentro de una oración.
+
+Sin embargo, la precisión predictiva no es suficiente para garantizar la
+validez de estos modelos en contextos institucionales. Como señalan
+Burkart y Huber \citep{burkart2021}, la explicabilidad y la
+interpretabilidad son condiciones fundamentales para su adopción en la
+toma de decisiones públicas. De forma complementaria, Alshaikh et al.
+\citep{alshaikh2023} evidencian que la falta de comprensión de los
+modelos de machine learning por parte de los operadores puede afectar la
+eficiencia operativa, mientras que Bachinger et al.
+\citep{bachinger2024} destacan oportunidades para integrar enfoques más
+adaptativos y explicables en aplicaciones industriales.
+
+\subsection{Legitimidad en
+instituciones}\label{legitimidad-en-instituciones}
+
+La legitimidad institucional constituye un elemento central en el
+análisis de la relación entre ciudadanos y Estado, ya que influye
+directamente en los niveles de confianza, cumplimiento normativo y
+cooperación social. La literatura contemporánea ha destacado que la
+legitimidad no solo depende del desempeño objetivo de las instituciones,
+sino también de las percepciones sociales que se construyen en torno a
+su actuación. En este sentido, Spivack et al. \citep{spivack2025}
+analizan cómo la legitimidad puede verse distorsionada por dinámicas de
+entusiasmo inicial o \emph{hype} ante la aparición de nuevas
+instituciones dentro de contextos pluralistas.
+
+Desde una perspectiva más empírica, Lee y Lee \citep{lee2021} muestran
+que la confianza en instituciones como las fuerzas policiales no depende
+exclusivamente de características personales, sino también del trato
+equitativo, justo y respetuoso en los procedimientos. Sus hallazgos
+evidencian que la percepción de justicia procedimental incide
+directamente en la percepción de seguridad ciudadana, reforzando la idea
+de que la legitimidad se construye tanto en el plano emocional como en
+la experiencia concreta con la autoridad. De manera complementaria,
+Badas \citep{badas2019} distingue entre mediciones ortodoxas de
+legitimidad judicial y enfoques más situacionales orientados a capturar
+inferencias contextuales.
+
+En conjunto, estos aportes muestran que la legitimidad institucional es
+un constructo dinámico, multidimensional y estrechamente vinculado con
+la percepción de seguridad y la confianza ciudadana, lo que la convierte
+en una variable clave para comprender la relación entre criminalidad,
+percepción e institucionalidad en contextos urbanos.
+
+\subsection{Modelos de lenguaje de gran
+escala}\label{modelos-de-lenguaje-de-gran-escala}
+
+El desarrollo de los modelos de lenguaje de gran escala y de diversas
+herramientas algorítmicas ha adquirido un protagonismo significativo
+durante la última década \citep{murray2020}. Estos modelos, basados en
+arquitecturas profundas de aprendizaje automático, han revolucionado la
+forma en que se procesan, comprenden y generan textos en múltiples
+contextos disciplinarios. En paralelo, el ecosistema de software
+estadístico y científico ha respondido a esta expansión mediante el
+desarrollo de paquetes especializados que permiten interactuar con
+modelos de lenguaje de distintos proveedores.
+
+Entre las herramientas disponibles para la interacción con modelos de
+lenguaje de gran escala, destaca el paquete \texttt{ellmer},
+desarrollado por Wickham et al. \citep{wickham2025ellmer}. Este paquete
+ofrece una interfaz unificada para comunicarse con LLMs de diversas
+plataformas e incorpora funcionalidades como llamadas asíncronas,
+ejecución en paralelo, \emph{streaming} y extracción estructurada de
+datos. Esta convergencia entre infraestructura estadística y modelos de
+lenguaje evidencia la consolidación de una nueva etapa en la
+investigación computacional, caracterizada por la integración entre
+ciencia de datos, procesamiento del lenguaje natural y análisis
+reproducible dentro de entornos abiertos como R.
+
+\section{Metodología}\label{metodologuxeda}
+
+\subsection{Enfoque metodológico y
+reproducibilidad}\label{enfoque-metodoluxf3gico-y-reproducibilidad}
+
+El estudio adopta un enfoque mixto de carácter
+cuantitativo-computacional con interpretación sustantiva, orientado al
+análisis longitudinal de la percepción de seguridad en Bogotá. La
+implementación se realizó en el lenguaje de programación R versión 4.4.3
+\citep{rcore2025}, ejecutado en sistemas operativos macOS y Windows. El
+trabajo colaborativo se gestionó mediante control de versiones en
+GitHub.
+
+La reproducibilidad del estudio fue garantizada mediante la
+implementación de un esquema integral de control y documentación del
+proceso analítico. En primer lugar, se empleó un sistema de control de
+versiones para el código fuente, lo que permitió registrar cada
+modificación realizada y asegurar trazabilidad en el desarrollo
+colaborativo. En segundo lugar, toda la metodología fue documentada
+utilizando R Markdown, facilitando la integración entre código,
+resultados y explicación metodológica en un entorno dinámico y
+verificable. Asimismo, se mantuvo un registro explícito de las librerías
+y dependencias utilizadas durante el análisis, evitando inconsistencias
+derivadas de cambios en versiones de paquetes. Finalmente, se implementó
+la gestión de entornos reproducibles mediante \texttt{renv}
+\citep{ushey2025}, lo que permitió congelar las versiones específicas de
+R y de cada paquete empleado, garantizando que el proyecto pueda
+ejecutarse en el futuro bajo las mismas condiciones computacionales y
+minimizando riesgos de incompatibilidad o variabilidad en los
+resultados.
+
+\subsection{Fuentes de información y construcción de la base de
+datos}\label{fuentes-de-informaciuxf3n-y-construcciuxf3n-de-la-base-de-datos}
+
+El estudio se fundamenta en la integración sistemática de dos fuentes
+principales de información, con el propósito de contrastar la percepción
+social de la seguridad con indicadores objetivos de criminalidad y con
+el discurso mediático construido en torno a la ciudad de Bogotá. Este
+diseño permite articular evidencia empírica observable con
+representaciones discursivas, facilitando un análisis comparativo entre
+hechos verificables y narrativas públicas.
+
+En primer lugar, se emplearon datos administrativos provenientes de la
+Secretaría Distrital de Seguridad, Convivencia y Justicia
+\citep{secretaria2026}, correspondientes a los hurtos de alto impacto,
+categoría que incluye hurto a personas, hurto a residencias y hurto de
+motocicletas \citep{anzola2019}. La base de datos comprende registros
+mensuales desde enero de 2022 hasta septiembre de 2025, cubriendo las 19
+localidades urbanas de Bogotá. En total, se consolidaron 2,565
+observaciones, resultado de la integración de tres tablas, una por
+tipología de hurto, cada una estructurada en 19 localidades observadas
+durante 45 meses. Los hurtos de alto impacto se emplean como variable de
+control, en la medida en que representan hechos denunciados y
+oficialmente registrados, constituyendo indicadores observables y
+verificables que permiten contrastar las percepciones expresadas en los
+textos con la evolución real de la criminalidad. Esta estrategia
+metodológica resulta adecuada para analizar la relación entre percepción
+mediática y hechos objetivos \citep{lopezbalboa2021}.
+
+En segundo lugar, se incorporó una fuente textual orientada a capturar
+la percepción social de la seguridad a través del discurso mediático.
+Para ello, se recolectaron titulares y notas periodísticas obtenidas
+mediante consultas estructuradas en Google News, utilizando palabras
+clave asociadas a seguridad y criminalidad. El periodo de recolección
+coincide con el intervalo temporal de los datos administrativos,
+abarcando desde enero de 2022 hasta septiembre de 2025. En total, se
+consolidaron 2,487 observaciones textuales, cada una correspondiente a
+una noticia individual publicada dentro del rango temporal definido.
+
+La articulación de estas fuentes permite aproximar la percepción de
+seguridad desde dos dimensiones complementarias: por un lado, la
+realidad institucionalmente reportada por las autoridades a través de
+registros oficiales de criminalidad y, por otro, la construcción
+discursiva mediática que contribuye a moldear la opinión pública sobre
+la seguridad urbana. Esta integración fortalece el diseño metodológico
+al permitir contrastar dinámicas objetivas y representaciones simbólicas
+dentro de un mismo marco temporal y territorial.
+
+\subsection{Web scraping y recolección automatizada de
+textos}\label{web-scraping-y-recolecciuxf3n-automatizada-de-textos}
+
+La obtención de las reseñas y noticias se realizó mediante un proceso de
+web scraping automatizado, implementado en el lenguaje R
+\citep{rcore2024}. Para ello, se definieron consultas delimitadas por
+palabras clave relacionadas con seguridad y por rangos temporales
+coherentes con el periodo de análisis de los datos oficiales. Con el fin
+de simular un comportamiento de navegación real y reducir restricciones
+de acceso, se utilizaron distintos \texttt{User-Agent}, replicando el
+funcionamiento de un motor de búsqueda convencional. El proceso de
+scraping se llevó a cabo mediante la librería \texttt{RSelenium}
+\citep{harrison2022}, la cual permite la automatización de la navegación
+web y la interacción programática con portales dinámicos. Este
+procedimiento garantiza la recolección sistemática y reproducible de los
+textos, preservando la trazabilidad de las fuentes y las fechas de
+publicación.
+
+\subsection{Preprocesamiento y análisis de
+sentimientos}\label{preprocesamiento-y-anuxe1lisis-de-sentimientos}
+
+Una vez recopilados los textos, se desarrolló una etapa de procesamiento
+de lenguaje natural orientada a limpiar, normalizar y estructurar el
+corpus. Posteriormente, se realizó un análisis de sentimientos sobre las
+reseñas y noticias, con el objetivo de identificar la polaridad y las
+emociones asociadas al discurso sobre la seguridad.
+
+El análisis de sentimientos se implementó utilizando el paquete
+\texttt{syuzhet} \citep{jockers2015}, complementado con el léxico NRC,
+el cual clasifica términos en categorías de polaridad y en dimensiones
+emocionales. A partir de este enfoque léxico, se asignó a cada texto una
+medida de polaridad y un perfil emocional agregado. Desde un punto de
+vista teórico, este procedimiento se sustenta en el modelo de emociones
+básicas propuesto por Plutchik \citep{plutchik2003}, según el cual los
+sentimientos emergen de ocho emociones fundamentales cuya combinación da
+lugar a matices emocionales más complejos.
+
+\subsection{Análisis relacional y modelamiento de
+temas}\label{anuxe1lisis-relacional-y-modelamiento-de-temas}
+
+Con el propósito de identificar patrones discursivos y relaciones
+semánticas, se realizó un análisis de redes de palabras, orientado a
+detectar correlaciones y co-ocurrencias entre términos emocionalmente
+relevantes. Este enfoque permite explorar cómo se articulan los
+sentimientos en el discurso y qué asociaciones semánticas predominan en
+torno a la seguridad urbana.
+
+Adicionalmente, se aplicó un modelo estructural de temas (Structural
+Topic Modeling, STM), el cual permite identificar las temáticas latentes
+de mayor relevancia dentro del corpus textual \citep{roberts2019}. De
+manera complementaria, se implementó el algoritmo Wordfish, mediante la
+extensión de la librería \texttt{quanteda.textmodels}
+\citep{benoit2024textmodels}, con el fin de estimar la posición de
+documentos y palabras en un eje latente, permitiendo dimensionar su
+orientación semántica y comparar la intensidad relativa de determinados
+discursos asociados a la percepción de seguridad.
+
+\subsection{Análisis de colocaciones y procesamiento lingüístico
+estructurado}\label{anuxe1lisis-de-colocaciones-y-procesamiento-linguxfcuxedstico-estructurado}
+
+El estudio incorporó un análisis de colocaciones, entendido como la
+identificación de secuencias de palabras que tienden a aparecer juntas y
+que aportan significado contextual al discurso. Este procedimiento parte
+de un proceso de tokenización, mediante el cual los textos se segmentan
+en unidades léxicas. Para este fin, se utilizó la función
+\texttt{collocations} de la librería \texttt{quanteda}
+\citep{benoit2018}, empleando el método lambda para detectar
+combinaciones de palabras estadísticamente relevantes. Este análisis se
+complementó con técnicas de procesamiento estructurado del lenguaje
+mediante la librería \texttt{spacyr} \citep{benoit_matsuo2023}, que
+permitió identificar entidades nombradas y profundizar en la estructura
+gramatical de los textos.
+
+\subsection{Evaluación y criterios de validación de los
+modelos}\label{evaluaciuxf3n-y-criterios-de-validaciuxf3n-de-los-modelos}
+
+La evaluación de los distintos modelos implementados en esta
+investigación se realizó atendiendo a la naturaleza estadística y
+computacional de cada técnica, adoptando criterios diferenciados según
+su propósito analítico, ya fuera descriptivo, estructural,
+probabilístico o de agrupamiento.
+
+En el caso del análisis de sentimientos basado en \texttt{syuzhet} y el
+léxico NRC, la validación se orientó hacia la consistencia interna y la
+plausibilidad sustantiva de los resultados. Dado que se trata de un
+enfoque léxico y no de un modelo supervisado entrenado sobre datos
+etiquetados, no se utilizaron métricas de precisión predictiva. En su
+lugar, se examinó la estabilidad temporal de los índices de polaridad,
+su sensibilidad ante distintos procesos de normalización textual y su
+correspondencia con la evolución mensual de los hurtos de alto impacto.
+
+Para el análisis de clustering aplicado a los delitos de alto impacto,
+la evaluación se fundamentó en métricas formales de calidad de
+agrupamiento. En particular, se empleó el coeficiente de silueta para
+medir el grado de separación y cohesión interna de los clústeres,
+evaluando la distancia promedio intra-grupo frente a la distancia
+inter-grupos. Asimismo, se compararon distintos valores de \texttt{K}
+con el fin de identificar la partición óptima que maximizara la
+diferenciación estructural sin perder interpretabilidad sustantiva.
+
+En el análisis de redes de co-ocurrencia, la validación se centró en
+propiedades topológicas del grafo semántico. Se analizaron indicadores
+como la densidad global, la centralidad de los nodos más relevantes y la
+modularidad en la detección de comunidades léxicas. En relación con STM,
+la selección del número óptimo de tópicos se realizó comparando
+múltiples especificaciones bajo métricas formales de ajuste, tales como
+la coherencia semántica, la exclusividad de términos y el \emph{held-out
+likelihood}. El modelo Wordfish fue evaluado a partir de su convergencia
+estadística, la estabilidad de los parámetros estimados y la
+interpretabilidad del eje latente unidimensional.
+
+\subsection{Construcción del agente de inteligencia
+artificial}\label{construcciuxf3n-del-agente-de-inteligencia-artificial}
+
+Se desarrolló un agente de inteligencia artificial especializado en el
+análisis de noticias y discursos sociales, diferenciándose
+explícitamente de modelos comerciales de propósito general. El diseño
+del agente siguió un enfoque de especialización de dominio, orientado al
+estudio de la seguridad, la percepción social y la legitimidad
+institucional. La herramienta fue dispuesta en una interfaz gráfica
+desarrollada en \texttt{shiny} \citep{chang2025}, no con fines de
+producción ni de uso comercial, sino como un prototipo experimental
+destinado a facilitar la replicabilidad académica y a evaluar la
+viabilidad de futuras líneas de investigación basadas en modelos
+preentrenados para el análisis de la percepción de seguridad en noticias
+\citep{kmainasi2025}.
+
+El agente se integró con modelos de lenguaje ejecutados localmente,
+descargados mediante Ollama \citep{ollama2025}, los cuales fueron
+conectados a R a través de la librería \texttt{ellmer}
+\citep{wickham2025ellmer}. Posteriormente, la arquitectura del sistema
+se estructuró bajo un esquema de Retrieval-Augmented Generation (RAG),
+implementado mediante la librería \texttt{ragnar}
+\citep{kalinowski2025}. En una primera etapa, el corpus de noticias fue
+depurado, estandarizado y segmentado en fragmentos textuales coherentes.
+Estos fragmentos se almacenaron en una base de datos local optimizada
+para la recuperación de información, lo que permitió habilitar un
+sistema de consulta híbrido que combina búsquedas por palabras clave con
+mecanismos de similitud semántica.
+
+Este enfoque garantiza que las respuestas generadas por el agente se
+encuentren ancladas en información verificable, reduciendo el riesgo de
+alucinaciones y fortaleciendo criterios de reproducibilidad,
+transparencia metodológica y coherencia analítica. En consecuencia, el
+agente opera como un instrumento analítico exploratorio, orientado a
+evaluar, en tiempo casi real, la relación entre percepción de seguridad,
+discurso mediático y legitimidad institucional desde una perspectiva
+macro y comparativa.
+
+\bibliography{bibliography.bib}
+
+
+\end{document}
