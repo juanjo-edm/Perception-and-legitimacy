@@ -1,0 +1,2 @@
+Data storage for the project. 
+This directory includes raw data (original, unaltered sources) and processed data (cleaned, transformed, and analysis-ready datasets) used throughout the pipeline.
