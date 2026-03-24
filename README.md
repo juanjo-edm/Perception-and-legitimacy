@@ -24,7 +24,7 @@ The analysis combines two complementary sources:
 
 ### 1. Official crime data  
 - High-impact theft records (2022–2025)  
-- Disaggregated by locality in Bogotá  
+- Disaggregated by locality in Bogota 
 - Source: Secretaría Distrital de Seguridad  
 
 ### 2. Textual data (Google News)  
