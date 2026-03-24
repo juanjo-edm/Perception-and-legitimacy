@@ -1,1 +1,3 @@
-In this folder we create all the modular function necessary for the analysis
+Core source code implementing the analytical pipeline. 
+This folder includes modular scripts and functions for web scraping, text preprocessing, feature engineering, modeling, and evaluation. 
+The structure follows a functional separation to support maintainability, reproducibility, and scalability.
